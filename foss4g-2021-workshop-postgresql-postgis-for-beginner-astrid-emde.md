@@ -77,7 +77,11 @@ SELECT version(), postgis_version(), postgis_full_version();
 ## Additional information
 
 * PostGIS in Action (August 2015, 2. Auflage) Regine Obe, Leo Hsu ISBN 9781617291395
+* Paul Ramsey PostGIS Day 20019 - Everything about PostGIS https://www.youtube.com/watch?v=g4DgAVCmiDE
 * Paul Ramsey Blog Clever Elephant http://blog.cleverelephant.ca/
+* MapScaping Podcast Paul Ramsey Spatial SQL - GIS without the GIS https://mapscaping.com/blogs/the-mapscaping-podcast/spatial-sql-gis-without-the-gis
+* Geomob Podcast - 88. Paul Ramsey: PostGIS turns 20 https://thegeomob.com/podcast/episode-88
+* PostGIS at 20, The Beginning Paul Ramsey: http://blog.cleverelephant.ca/2021/05/postgis-20-years.html
 * Clever Elephant ;) https://www.youtube.com/watch?v=Gw_Q1JClH58
 * Postgres OnLine Journal Regine Obe, Leo Hsu http://www.postgresonline.com/
 * Modern SQL Blog Markus Winand https://modern-sql.com/slides https://use-the-index-luke.com/
@@ -119,7 +123,7 @@ SELECT version(), postgis_version(), postgis_full_version();
 * Can use the advantages from PostgreSQL (user management, replication, indexing & more)
 * Very powerful: vector & raster data, geometry (planar) and geography (spheroid), circular objects, 3D, 4D, point cloud, pg_routing for routing, topology
 * Stores data as WKB (Well-known Binary) and displays it as WKT (Well-known text)
-* http://www.postgis.net/
+* http://postgis.net/
 * http://postgis.net/docs/
 
 
@@ -199,7 +203,7 @@ DROP TABLE pois;
 * manipulate your data - create data, delete data, change data
 
 ```sql
-INSERT INTO pois (name, year, info) VALUES
+INSERT INTO pois (name, year, info) VALUES 
 (
 'Kölner Dom',
 1248,
@@ -210,6 +214,7 @@ INSERT INTO pois (name, year, info) VALUES
 ```sql
 UPDATE pois SET name = 'Cologne Cathedral' WHERE name = 'Kölner Dom';
 ```
+
 
 ```sql
 --deletes feature with name "Cologne Cathedral"
@@ -253,7 +258,7 @@ CREATE EXTENSION postgis;
 Choose :menuselection:`Systems Tools --> LX Terminal` from menu to open a Terminal window.
 
 ```sql
-createdb -U user demo
+createdb -U user -e demo
 createdb --help
 
 psql -U user demo
@@ -301,6 +306,23 @@ INSERT INTO cities(
     VALUES ('Cologne',ST_SetSRID(ST_MakePoint(6.958307 , 50.941357),4326),'Germany');
 ```
 
+
+### Well-Known Text Format (WKT) und Well-Known Binary Format (WKB) 
+
+Die Geometrien werden intern im Well-Known Binary Format (WKB) gespeichert. Eine lesbare Ausgabe ist über das Well-Known Text Format (WKT) möglich.
+
+![](img/postgis_wkt.png)
+
+http://postgis.net/docs/using_postgis_dbmanagement.html#OpenGISWKBWKT
+
+
+ST_AsEWKT or ST_AsText - to display the geometry as text
+
+```sql
+SELECT ST_AsText(geom), geom FROM cities; -- mit SRID
+SELECT ST_AsEWKT(geom), geom FROM cities; -- ohne SRID
+``` 
+
 ## QGIS to visualize your data
 
 * You can visualize, edit and import/export data from a PostgreSQL/PostGIS database
@@ -329,7 +351,8 @@ To import data you have to follow the steps:
 
 1. Open the DB Manager
 1. Connect to your database
-1. Use the Import layer/file button1. Choose your data for import
+1. Use the Import layer/file button
+1. Choose your data for import
 1. define a name for your table, the SRID, add a primary key (gid recommended)
 1. Create a spatial index
 1. Start the import
@@ -347,18 +370,33 @@ To import data you have to follow the steps:
 * Have a look to your metadata view **_geometry_columns_**
 
 
+## QGIS: Create your table via QGIS
+
+It is very easy to create new tables with spatial data with QGIS. 
+This is done with the QGIS DB Manager. Choose the menu item **_Table -> Create table_**. 
+You can define a unique id, add colummns and define the geometry column.
+
+
+![](img/qgis_create_table.png)
+
+
+### Excercise 7: Create a table named locations via QGIS
+
+* Create a new table in your database **_foss4g_** via QGIS named **_locations_**. This table shall store a point for each city where FOSS4G took place. 
+* The table needs a unique id, a column for the city name, maybe a column for the country name, a column for the year and a link to the website. 
+And do not miss a geometry column (POINT, SRID 4326). 
+* Also create a Spaltial Index on creation of the table.
+* Now you can start editing. You can add a point to this layer for Buenos Aires and add the additional information.
+* Now have a look at your new table with pgAdmin.
+
+Note: It is so easy to create tables in your database without using SQL.
+
+
 ## Get to know PostGIS functions
 
 * PostGIS Documentation http://postgis.net/docs/
 * PostGIS Vector Functions see Chapter 5: http://postgis.net/docs/reference.html
 
-### ST_AsEWKT or ST_AsText - to display the geometry as text
-
-```sql
-SELECT ST_AsText(geom) FROM cities; -- without SRID
-SELECT ST_AsEWKT(geom) FROM cities; -- with SRID
-SELECT ST_AsEWKT(geom) FROM provinces_argentinia;
-```
 
 ### Geometry Constructors
 
@@ -386,7 +424,7 @@ WHERE name = 'United Kingdom';
 * get information about your data f.e. distance, area, length, centroid
 
 
-### Excercise 7: Calculate the area for each country
+### Excercise 8: Calculate the area for each country
 
 * http://postgis.net/docs/ST_Area.html
 * Note that the area is calculated using the srid of the geometry. Use the calculation on the spheroid to get the result in meters.
@@ -399,7 +437,7 @@ SELECT gid, name, st_Area(geom)
 
 Calculate area using the Spheroid (result in squaremeters)
 ```sql
-SELECT gid, name, st_Area(geom, true)
+SELECT gid, name, st_Area(geom, true) 
   FROM public.ne_10m_admin_0_countries;
 ```
 Calculate area from Germany and Argentinia order by area
@@ -410,7 +448,7 @@ SELECT gid, name, st_Area(geom, true) as area
   ORDER BY area DESC;
 ```
 
-### Excercise 8: Create a view with the centroid for each country
+### Excercise 9: Create a view with the centroid for each country
 
 * Create a view with the centroid for each province
 * try to load the view in QGIS
@@ -440,7 +478,7 @@ SELECT gid, name, st_pointonsurface(geom)::geometry(point,4326) as geom
 ```
 
 
-### Excercise 9: 
+### Excercise 10: Calculate the distance
 
 * get back to your cities table from **_Excercise 4_**. Calculate the distance between Buenos Aires and your home town.
 * use the spheroid for your calculations (use geography)
@@ -454,6 +492,9 @@ SELECT g.name, you.name, ST_Distance(g.geom, you.geom,true)
     g.name = 'Buenos Aires' 
     AND you.name='Cologne';
 ```
+
+* Question: Who would have had the longest distance to travel if the conference would have taken place in Buenos Aires and not Online?
+
 ![](img/st_distance.png)
 
 ![](img/qgis_great_circle.png)
@@ -466,16 +507,23 @@ SELECT g.name, you.name, ST_Distance(g.geom, you.geom,true)
 
 ```sql
 CREATE INDEX gist_cities_geom
+ ON cities 
+ USING GIST (geom);
+```
+
+```sql
+CREATE INDEX gist_cities_geom
   ON cities 
   USING GIST (ST_Transform(geom,25832));
 ```
+
 
 ## Geometry Processing
 
 * There are many functions for geometry processing f.e. buffering, intersection, union, subdivide
 * http://postgis.net/docs/reference.html#Geometry_Processing
 
-### Exercise 10: Buffer populated places with 10 km
+### Exercise 11: Buffer populated places with 10 km
 
 * Buffer the table ne_10m_populated_places with 10 km
 * http://postgis.net/docs/ST_Buffer.html
@@ -524,7 +572,7 @@ SELECT a.*
 ```
 
 
-### Exercise 11: ST_Union - union all provinces from country Argentinia to one area 
+### Exercise 12: ST_Union - union all provinces from country Argentinia to one area 
 
 * create a view called qry_argentinia_union
 * use ST_UNION http://postgis.net/docs/ST_Union.html
@@ -600,7 +648,7 @@ ALTER TABLE provinces_subdivided ADD COLUMN gid serial PRIMARY KEY;
 
 
 ```sql
-CREATE INDEX provinces_subdivided_the_geom_gist
+CREATE INDEX provinces_subdivided_geom_gist
   ON provinces_subdivided
   USING gist
   (geom);
@@ -608,7 +656,7 @@ CREATE INDEX provinces_subdivided_the_geom_gist
 VACUUM ANALYZE provinces_subdivided;
 ```
 
-### Example 12: ST_Subdivide
+### Example 13: ST_Subdivide
 
 * Sometimes it makes sense to divide huge geometries in smaller parts to get faster calculations
 * This example should show the use 
@@ -670,7 +718,7 @@ These roles can have different power and get access via GRANT to different objec
 * See GRANT https://www.postgresql.org/docs/current/static/sql-grant.html
 
 
-### Example 13: Create roles and grant access    
+### Example 14: Create roles and grant access    
 
 #. Create a role workshop_read and workshop_writer
 #. Create a login role robert with a password and add to workshop_reader
