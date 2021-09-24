@@ -1,8 +1,8 @@
 # Workshop PostgreSQL/PostGIS for beginner
 
-[FOSS4G 2021 Workshop Buenos Aires (Argentinia) Online](https://2021.foss4g.org/)
+[FOSS4G 2021 Workshop Buenos Aires (Argentina) Online](https://2021.foss4g.org/)
 
-![FOSS4G 2021 Workshop Buenos Aires (Argentinia) Online](img/foss4g-2021.png ) ![](img/postgresql_postgis.png)
+![FOSS4G 2021 Workshop Buenos Aires (Argentina) Online](img/foss4g-2021.png ) ![](img/postgresql_postgis.png)
 
 
 [![Creative Commons License](http://i.creativecommons.org/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.de)
@@ -242,7 +242,7 @@ Notice: Use lower case and no spaces as name for your database, tables columns! 
 CREATE DATABASE foss4g;
 ```
 
-Move to database *__foss4g_** (update object browser, select foss4g database and open new query editor)
+Move to database **__foss4g_** (update the object browser, go to the database foss4g and open a new query editor)
 
 ```sql
 CREATE EXTENSION postgis;
@@ -271,7 +271,16 @@ dropdb -U user demo
 ### Excercise 4: Create your own table cities
 
 * create a new table **_cities_** with gid, name, country and geom (see poi example above)
-* create a point for Buenos Aires (Argentinia) with ST_MakePoint - find the coordinate at https://www.latlong.net/place/bucharest-romania-2068.html
+* create a point for Buenos Aires (Argentina) with ST_MakePoint. 
+* We take the coordinate of the Sculpture Floralis Genérica which is latitude -34,5816606, longitude -58,3940903 
+
+
+![](img/La_Flor_-_Plaza_de_las_Naciones_Unidas.jpg =250x)
+
+* https://en.wikipedia.org/wiki/Floralis_Gen%C3%A9rica
+* https://commons.wikimedia.org/wiki/File:La_Flor_-_Plaza_de_las_Naciones_Unidas.jpg
+
+
 
 ```sql
 CREATE TABLE cities(
@@ -285,8 +294,10 @@ CREATE TABLE cities(
 ```sql
 INSERT INTO cities(
             name, geom, country)
-    VALUES ('Buenos Aires',ST_SetSRID(ST_MakePoint(26.096306 , 44.439663),4326),'Argentinia');
+    VALUES ('Buenos Aires',ST_SetSRID(ST_MakePoint(-58.394002,-34.581619),4326),'Argentina');
 ```
+
+
 
 ```sql
 INSERT INTO cities(
@@ -341,6 +352,7 @@ SELECT ST_AsEWKT(geom), geom FROM cities; -- ohne SRID
 
 ![](img/qgis_cities.png)
 
+
 ## QGIS import data to PostgreSQL via QGIS DB Manager
 
 You can use the QGIS DB Manager to import/export data to/from your database. You find the QGIS DB Manager in the menu at Database -> DB Manager. You need a connection to the PostgreSQL database that you would like to use.
@@ -363,9 +375,9 @@ To import data you have to follow the steps:
 
 ### Excercise 6: Load data from natural_earth2 shapes to your database
 
-* Import ne_10m_admin_0_countries.shp to table ne_10m_admin_0_countries.shp
+* Import ne_10m_admin_0_countries.shp to table ne_10m_admin_0_countries
 * /home/user/data/natural_earth2/ne_10m_admin_1_states_provinces_shp.shp to table ne_10m_admin_1_states_provinces_shp
-* Also import provinces and only import the provinces from Argentinia to **_table provinces_argentinia_** (use Filter "admin" = 'Argentinia')
+* Also import provinces and only import the provinces from Argentina to **_table provinces_Argentina_** (use Filter "admin" = 'Argentina')
 * Import all ne_10m_populated_places to table **_ne_10m_populated_places_**
 * Have a look to your metadata view **_geometry_columns_**
 
@@ -440,11 +452,11 @@ Calculate area using the Spheroid (result in squaremeters)
 SELECT gid, name, st_Area(geom, true) 
   FROM public.ne_10m_admin_0_countries;
 ```
-Calculate area from Germany and Argentinia order by area
+Calculate area from Germany and Argentina order by area
 ```sql
 SELECT gid, name, st_Area(geom, true) as area
   FROM public.ne_10m_admin_0_countries
-  WHERE name IN ('Germany','Argentinia') 
+  WHERE name IN ('Germany','Argentina') 
   ORDER BY area DESC;
 ```
 
@@ -572,12 +584,12 @@ SELECT a.*
 ```
 
 
-### Exercise 12: ST_Union - union all provinces from country Argentinia to one area 
+### Exercise 12: ST_Union - union all provinces from country Argentina to one area 
 
-* create a view called qry_argentinia_union
+* create a view called qry_argentina_union
 * use ST_UNION http://postgis.net/docs/ST_Union.html
-* use table ne_10m_admin_1_states_provinces_shp and filter by admin Argentinia
-* add column admin to your view (admin='Argentinia') - you have to use GROUP BY 
+* use table ne_10m_admin_1_states_provinces_shp and filter by admin Argentina
+* add column admin to your view (admin='Argentina') - you have to use GROUP BY 
 * typecast the geomety column
 * have a look at your result with QGIS
 
@@ -585,7 +597,7 @@ SELECT a.*
 ```sql
 SELECT ST_Union(geom)
   FROM public.ne_10m_admin_1_states_provinces_shp 
-  WHERE admin='Argentinia';
+  WHERE admin='Argentina';
 ```
 
 ```sql
@@ -593,21 +605,21 @@ SELECT 1 as gid,
   admin, 
   st_AsText(ST_Union(geom))
   FROM public.ne_10m_admin_1_states_provinces_shp 
-  WHERE admin='Argentinia'
+  WHERE admin='Argentina'
   GROUP BY admin ;
 ```
 
 ```sql
-CREATE VIEW qry_argentinia_union AS
+CREATE VIEW qry_argentina_union AS
 SELECT 1 as gid, 
   admin, 
   ST_UNION(geom::geometry(multipolygon,4326)) as geom
   FROM public.ne_10m_admin_1_states_provinces_shp 
-  WHERE admin='Argentinia'
+  WHERE admin='Argentina'
   GROUP BY admin ;
 ```
 
-![](img/qgis_qry_argentinia_union.png)
+![](img/qgis_qry_argentina_union.png)
 
 ### ST_Subdivide
 
@@ -674,14 +686,14 @@ LANGUAGE 'sql';
 ```sql
 SELECT name, getCountrynameSubdivided(geom) 
  FROM public.ne_10m_populated_places 
- WHERE adm0name = 'Argentinia';
+ WHERE adm0name = 'Argentina';
 ```
 
 ```sql
 EXPLAIN ANALYZE
 SELECT name, getCountrynameSubdivided(geom) 
  FROM public.ne_10m_populated_places 
- WHERE adm0name = 'Argentinia';
+ WHERE adm0name = 'Argentina';
 ```
 ![](img/getCountrynameSubdivided.png)
 
