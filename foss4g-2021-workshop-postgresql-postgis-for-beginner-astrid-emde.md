@@ -275,7 +275,7 @@ dropdb -U user demo
 * We take the coordinate of the Sculpture Floralis Genérica which is latitude -34,5816606, longitude -58,3940903 
 
 
-![](img/La_Flor_-_Plaza_de_las_Naciones_Unidas.jpg =250x)
+![](img/La_Flor_-_Plaza_de_las_Naciones_Unidas.jpg)
 
 * https://en.wikipedia.org/wiki/Floralis_Gen%C3%A9rica
 * https://commons.wikimedia.org/wiki/File:La_Flor_-_Plaza_de_las_Naciones_Unidas.jpg
@@ -320,7 +320,7 @@ INSERT INTO cities(
 
 ### Well-Known Text Format (WKT) und Well-Known Binary Format (WKB) 
 
-Die Geometrien werden intern im Well-Known Binary Format (WKB) gespeichert. Eine lesbare Ausgabe ist über das Well-Known Text Format (WKT) möglich.
+Geometries are stored in WKB format (Well-known Binary) which is not human readable. If you would like to see how the geometry looks like you can display them in the human readable WKT format (Well-known text).
 
 ![](img/postgis_wkt.png)
 
@@ -375,9 +375,10 @@ To import data you have to follow the steps:
 
 ### Excercise 6: Load data from natural_earth2 shapes to your database
 
-* Import ne_10m_admin_0_countries.shp to table ne_10m_admin_0_countries
-* /home/user/data/natural_earth2/ne_10m_admin_1_states_provinces_shp.shp to table ne_10m_admin_1_states_provinces_shp
-* Also import provinces and only import the provinces from Argentina to **_table provinces_Argentina_** (use Filter "admin" = 'Argentina')
+* You find the natural_earth2 data at /home/user/data/natural_earth2/
+* Import ne_10m_admin_0_countries.shp to table **_ne_10m_admin_0_countries_**
+* Import ne_10m_admin_1_states_provinces_shp.shp to table **_ne_10m_admin_1_states_provinces_shp_**
+* Also import only the provinces from Argentina to **_table provinces_argentina_** (in QGIS use Filter "admin" = 'Argentina')
 * Import all ne_10m_populated_places to table **_ne_10m_populated_places_**
 * Have a look to your metadata view **_geometry_columns_**
 
@@ -421,7 +422,9 @@ ST_GeomFromText - can be used for different geometry types
 * http://postgis.net/docs/using_postgis_dbmanagement.html#OpenGISWKBWKT
 
 ```sql
-Update cities set geom = ST_GeomFromText('POINT(6.958307 50.941357)',4326) where name = 'Cologne';
+Update cities 
+  set geom = ST_GeomFromText('POINT(6.958307 50.941357)',4326) 
+  WHERE name = 'Cologne';
 ```
 
 ```sql
@@ -429,7 +432,7 @@ Update ne_10m_admin_0_countries
 set geom = ST_GeomFromText('MULTIPOLYGON(((0 0,4 0,4 4,0 4,0 0),(1 1,2 1,2 2,1 2,1 1)), ((-1 -1,-1 -2,-2 -2,-2 -1,-1 -1)))',4326) 
 WHERE name = 'United Kingdom';
 ```
-![](img/qgis_ST_GeomFromText.png)
+![](img/update_ST_GeomFromText.png)
 
 ## Spatial Relationships and Measurements
 
@@ -454,7 +457,7 @@ SELECT gid, name, st_Area(geom, true)
 ```
 Calculate area from Germany and Argentina order by area
 ```sql
-SELECT gid, name, st_Area(geom, true) as area
+SELECT gid, name, round(ST_Area(geom, true)) as area
   FROM public.ne_10m_admin_0_countries
   WHERE name IN ('Germany','Argentina') 
   ORDER BY area DESC;
@@ -463,8 +466,10 @@ SELECT gid, name, st_Area(geom, true) as area
 ### Excercise 9: Create a view with the centroid for each country
 
 * Create a view with the centroid for each province
-* try to load the view in QGIS
-* have a look at your geometry_columns view
+* Try to load the view in QGIS
+* Have a look at your geometry_columns view
+* Check where the centroid of France is and the centroid of Argentina.
+
 
 ```sql
 CREATE VIEW qry_country_centroid AS
@@ -481,23 +486,30 @@ SELECT gid, name, st_centroid(geom)::geometry(point,4326) as geom
   FROM public.ne_10m_admin_0_countries;
 ```
 
-Use the function ST_PointOnSurface
-
-```sql
-CREATE VIEW qry_country_pointonsurface AS
-SELECT gid, name, st_pointonsurface(geom)::geometry(point,4326) as geom
-  FROM public.ne_10m_admin_0_countries;
-```
 
 
 ### Excercise 10: Calculate the distance
+
+* How many and which centroids are not on the country polygon? 
+
+```sql
+SELECT c.gid, 
+  c.name, 
+  ST_Distance (p.geom, c.geom, true), 
+  c.geom, p.geom
+  FROM qry_country_centroid p,
+  ne_10m_admin_0_countries c
+  WHERE 
+    ST_Distance (p.geom, c.geom) > 0
+    AND p.gid = c.gid
+```
 
 * get back to your cities table from **_Excercise 4_**. Calculate the distance between Buenos Aires and your home town.
 * use the spheroid for your calculations (use geography)
 * https://postgis.net/docs/ST_Distance.html
 
 ```sql
-SELECT g.name, you.name, ST_Distance(g.geom, you.geom,true) 
+SELECT g.name, you.name, ST_Distance(g.geom, you.geom, true) 
   FROM cities g, 
   cities you 
   WHERE 
@@ -537,6 +549,7 @@ CREATE INDEX gist_cities_geom
 
 ### Exercise 11: Buffer populated places with 10 km
 
+* 
 * Buffer the table ne_10m_populated_places with 10 km
 * http://postgis.net/docs/ST_Buffer.html
 * Note that you have to use geography to create a buffer in meter - use typecast ::geography
@@ -586,13 +599,28 @@ SELECT a.*
 
 ### Exercise 12: ST_Union - union all provinces from country Argentina to one area 
 
-* create a view called qry_argentina_union
+* Have a look at the provinces from Argentina and order them by size
+* Create a view called qry_argentina_union
 * use ST_UNION http://postgis.net/docs/ST_Union.html
 * use table ne_10m_admin_1_states_provinces_shp and filter by admin Argentina
 * add column admin to your view (admin='Argentina') - you have to use GROUP BY 
 * typecast the geomety column
 * have a look at your result with QGIS
 
+Step 1: Have a look at the provinces from Argentina
+
+```sql
+SELECT gid, name, admin, geom, 
+  round(ST_Area(geom, true)) as area,
+  RANK() over (order by ST_Area(geom, true) desc)
+  FROM ne_10m_admin_1_states_provinces_shp 
+  WHERE admin='Argentina'
+  ORDER BY area DESC;
+```sql
+
+![](img/argentina_provinces.png)
+
+Step 2: Union all provinces from Argentina via ST_UNION
 
 ```sql
 SELECT ST_Union(geom)
@@ -600,8 +628,10 @@ SELECT ST_Union(geom)
   WHERE admin='Argentina';
 ```
 
+Step 3: Add a row number and display the geometry as text
+
 ```sql
-SELECT 1 as gid, 
+SELECT ROW_NUMBER() OVER () as gid, 
   admin, 
   st_AsText(ST_Union(geom))
   FROM public.ne_10m_admin_1_states_provinces_shp 
@@ -609,9 +639,11 @@ SELECT 1 as gid,
   GROUP BY admin ;
 ```
 
+Step 4: Create a view. Assign the geometry type and projection to the new geom, add column admin (use GROUP BY)
+
 ```sql
 CREATE VIEW qry_argentina_union AS
-SELECT 1 as gid, 
+SELECT ROW_NUMBER() OVER () as gid, 
   admin, 
   ST_UNION(geom::geometry(multipolygon,4326)) as geom
   FROM public.ne_10m_admin_1_states_provinces_shp 
@@ -619,15 +651,16 @@ SELECT 1 as gid,
   GROUP BY admin ;
 ```
 
-![](img/qgis_qry_argentina_union.png)
+![](img/argentina_union.png)
+
 
 ### ST_Subdivide
 
 * Divides a Multi-/Polygon in multiple smaller Polygons
-* define max_vertices (default is 256, can't be < 8)
-* Objekt should not have more than max_vertices
+* Define max_vertices (default is 256, can't be < 8)
+* Try with definition of max_vertices: Object should not have more than 20 max_vertices
 * http://postgis.net/docs/ST_Subdivide.html
-* from PostGIS 2.3.0
+* From PostGIS 2.3.0
 
 ```sql
 CREATE TABLE provinces_subdivided AS 
@@ -668,7 +701,7 @@ CREATE INDEX provinces_subdivided_geom_gist
 VACUUM ANALYZE provinces_subdivided;
 ```
 
-### Example 13: ST_Subdivide
+### Excercise 13: ST_Subdivide
 
 * Sometimes it makes sense to divide huge geometries in smaller parts to get faster calculations
 * This example should show the use 
@@ -721,6 +754,78 @@ SELECT name, getCountryname(geom)
  FROM public.ne_10m_populated_places;
 ```
 
+## PostgreSQL Foreign Data Wrapper
+
+You can connect from your database to other data sources via Foreign Data Wrapper (FDW). There are several Foreign Data Wrapper available see https://wiki.postgresql.org/wiki/Foreign_data_wrappers.
+
+To connect to another PostgreSQL database you can use the PostgreSQL FDW via the Extension postgres_fdw.
+
+- Note: PostgreSQL OGR Foreign Data Wrapper might be also interesting for you as it offers access to a large number of formats https://github.com/pramsey/pgsql-ogr-fdw 
+
+You have to 
+1. load the extension
+1. create a foreign server
+1. add a user mapping 
+1. import foreign tables 
+
+Then you can access the tables from the foreign database easily. 
+
+### Excercise 14: Create a Foreign Data Wrapper to the database osm_local
+
+1. load extension postgres_fdw
+1. create a foreign server to osm_local
+1. create a user mapping for user **_user_**
+1. Import all tables except spatial_ref_sys, geometry_columns, geography_columns
+1. find out which bars/pubs are close to the Sculpture Floralis Genérica (see your table cities)  
+
+Step 1-4: 
+
+```sql
+CREATE EXTENSION postgres_fdw;
+
+CREATE SERVER pg_fdw_osm_local
+ FOREIGN DATA WRAPPER postgres_fdw 
+ OPTIONS (host 'localhost', dbname 'osm_local', port '5432');
+
+CREATE USER MAPPING FOR user SERVER pg_fdw_osm_local 
+ OPTIONS (user 'user', password 'user');
+
+IMPORT FOREIGN SCHEMA public
+  EXCEPT (spatial_ref_sys, geometry_columns, geography_columns)
+    --[ { LIMIT TO | EXCEPT } ( table_name [, ...] ) ]
+    FROM SERVER pg_fdw_osm_local 
+    INTO public;
+```
+
+Use KNN (K nearest neighbor) to find the 5 closest pubs/bars from the Sculpture Floralis Genérica (see table cities)  
+
+```sql  
+SELECT c.name, p.amenity, p.way as geom, 
+ st_distance(c.geom, p.way, true)
+ FROM cities c,
+ planet_osm_point p
+  WHERE p.amenity IN ( 'bar' , 'pub')
+   AND c.name = 'Buenos Aires'
+    ORDER BY
+    c.geom <-> p.way
+    LIMIT 5;
+```
+
+Use KNN (K nearest neighbor) to find the pubs/bars less then 1 km distance from the Sculpture Floralis Genérica (see table cities)  
+
+
+```sql
+SELECT c.name, p.amenity, p.way as geom, 
+ st_distance(c.geom, p.way, true)
+ FROM cities c,
+ planet_osm_point p
+  WHERE p.amenity IN ( 'bar' , 'pub')
+   AND c.name = 'Buenos Aires'
+   AND st_distance(c.geom, p.way, true) < 1000
+    ORDER BY
+    c.geom <-> p.way;
+```
+
 ## PostgreSQL Roles and controlled access
 
 PostgreSQL allows you to create roles (user with login and user without login) and also groups. 
@@ -730,7 +835,8 @@ These roles can have different power and get access via GRANT to different objec
 * See GRANT https://www.postgresql.org/docs/current/static/sql-grant.html
 
 
-### Example 14: Create roles and grant access    
+
+### Example 15: Create roles and grant access    
 
 #. Create a role workshop_read and workshop_writer
 #. Create a login role robert with a password and add to workshop_reader
@@ -768,4 +874,13 @@ SELECT * from cities;
 UPDATE cities SET name = 'TEST' WHERE name = 'Buenos Aires';
 ```
 
+## What is coming next?
+
+- PostGIS raster https://postgis.net/docs/RT_reference.html
+- PostGIS point cloud https://pgpointcloud.github.io/pointcloud/
+- PostGIS 3D https://postgis.net/docs/reference.html#reference_sfcgal
+- pgRouting https://pgrouting.org/
+- MobilityDB https://github.com/MobilityDB/MobilityDB
+- pg_featureserv PostGIS-only Feature Server https://access.crunchydata.com/documentation/pg_featureserv/latest/
+- pg_tileserv PostGIS-only Tile Server https://access.crunchydata.com/documentation/pg_tileserv/latest/
 
