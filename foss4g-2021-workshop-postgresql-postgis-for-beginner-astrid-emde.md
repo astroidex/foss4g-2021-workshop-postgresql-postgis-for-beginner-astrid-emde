@@ -726,6 +726,7 @@ SELECT name, getCountrynameSubdivided(geom)
  FROM public.ne_10m_populated_places 
  WHERE adm0name = 'Argentina';
 ```
+
 ![](img/getCountrynameSubdivided.png)
 
 
@@ -798,8 +799,8 @@ IMPORT FOREIGN SCHEMA public
 Use KNN (K nearest neighbor) to find the 5 closest pubs/bars from the Sculpture Floralis Genérica (see table cities)  
 
 ```sql  
-SELECT c.name, p.amenity, p.way as geom, 
- st_distance(c.geom, p.way, true)
+CREATE VIEW qry_next_5_bars as   
+SELECT p.osm_id, p.name, p.amenity, p.way as geom, 
  FROM cities c,
  planet_osm_point p
   WHERE p.amenity IN ( 'bar' , 'pub')
@@ -813,7 +814,8 @@ Use KNN (K nearest neighbor) to find the pubs/bars less then 1 km distance from 
 
 
 ```sql
-SELECT c.name, p.amenity, p.way as geom, 
+CREATE VIEW qry_next_bars_1000 as   
+SELECT p.osm_id, p.name, p.amenity, p.way as geom, 
  st_distance(c.geom, p.way, true)
  FROM cities c,
  planet_osm_point p
@@ -823,6 +825,37 @@ SELECT c.name, p.amenity, p.way as geom,
     ORDER BY
     c.geom <-> p.way;
 ```
+
+
+Create the 1 km buffer around the sculture.
+
+```sql
+CREATE view qry_buffer_sculpture_1000 as
+ SELECT gid, st_buffer(geom::geography,1000)::geometry as geom 
+  FROM cities 
+   WHERE name = 'Buenos Aires'
+```
+
+
+Create an intersection between the buffer area and the OSM buildings.
+
+```sql
+CREATE view qry_intersection_buffer_1000_buildings as
+SELECT p.osm_id, p.way as geom, 
+ p.name,
+ p.building, 
+ ST_Intersection(p.way, s.geom)::geometry(polygon,4326) geom_intersection
+ FROM 
+ planet_osm_polygon p,
+ qry_buffer_sculpture_1000 s
+  WHERE 
+  p.building IS NOT NULL AND
+  ST_Intersects(p.way, s.geom)
+```
+
+![](img/knn_intersection.png)
+
+
 
 ## PostgreSQL Roles and controlled access
 
