@@ -616,7 +616,7 @@ SELECT gid, name, admin, geom,
   FROM ne_10m_admin_1_states_provinces_shp 
   WHERE admin='Argentina'
   ORDER BY area DESC;
-```sql
+```
 
 ![](img/argentina_provinces.png)
 
@@ -673,7 +673,7 @@ CREATE TABLE provinces_subdivided AS
 ALTER TABLE provinces_subdivided ADD COLUMN gid serial PRIMARY KEY;
 ```
 
-![](img/qgis_qry_provinces_subdivided.png)
+![](img/provinces_st_subdivide.png.png)
 
 * with definition of max_vertices (default is 256, not < 8)
 
@@ -688,8 +688,6 @@ CREATE TABLE provinces_subdivided AS
 
 ALTER TABLE provinces_subdivided ADD COLUMN gid serial PRIMARY KEY;
 ```
-
-![](img/qgis_qry_provinces_subdivided_max_vertices.png)
 
 
 ```sql
