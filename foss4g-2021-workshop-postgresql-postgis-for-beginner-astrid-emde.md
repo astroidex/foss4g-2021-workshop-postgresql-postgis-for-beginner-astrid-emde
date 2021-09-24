@@ -127,6 +127,15 @@ SELECT version(), postgis_version(), postgis_full_version();
 * http://postgis.net/docs/
 
 
+PostGIS turned 20 in on 21. May 2021!
+
+![](img/elephant_confetti.png)
+
+
+Do not miss PostGIS day!
+* https://twitter.com/search?q=PostGISDay
+
+
 ## Database Clients
 
 * pgAdmin 4 https://www.pgadmin.org/
