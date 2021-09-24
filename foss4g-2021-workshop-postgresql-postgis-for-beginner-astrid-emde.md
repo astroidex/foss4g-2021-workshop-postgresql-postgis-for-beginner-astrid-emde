@@ -673,7 +673,7 @@ CREATE TABLE provinces_subdivided AS
 ALTER TABLE provinces_subdivided ADD COLUMN gid serial PRIMARY KEY;
 ```
 
-![](img/provinces_st_subdivide.png.png)
+![](img/provinces_st_subdivide.png)
 
 * with definition of max_vertices (default is 256, not < 8)
 
