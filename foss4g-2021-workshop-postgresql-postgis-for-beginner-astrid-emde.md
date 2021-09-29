@@ -80,12 +80,12 @@ SELECT version(), postgis_version(), postgis_full_version();
 * Paul Ramsey PostGIS Day 20019 - Everything about PostGIS https://www.youtube.com/watch?v=g4DgAVCmiDE
 * Paul Ramsey Blog Clever Elephant http://blog.cleverelephant.ca/
 * MapScaping Podcast Paul Ramsey Spatial SQL - GIS without the GIS https://mapscaping.com/blogs/the-mapscaping-podcast/spatial-sql-gis-without-the-gis
-* Geomob Podcast - 88. Paul Ramsey: PostGIS turns 20 https://thegeomob.com/podcast/episode-88
-* PostGIS at 20, The Beginning Paul Ramsey: http://blog.cleverelephant.ca/2021/05/postgis-20-years.html
 * Clever Elephant ;) https://www.youtube.com/watch?v=Gw_Q1JClH58
 * Postgres OnLine Journal Regine Obe, Leo Hsu http://www.postgresonline.com/
 * Modern SQL Blog Markus Winand https://modern-sql.com/slides https://use-the-index-luke.com/
 * PostgreSQL books https://www.postgresql.org/docs/books/
+* FOSSGIS 2021 20 Jahre PostGIS - dazu 20 hilfreiche Tipps zu PostGIS und Neuigkeiten rund um das Projekt (Astrid Emde, german) https://pretalx.com/fossgis2021/talk/NL3FAN/
+* FOSSGIS 202 Verbindungen schaffen mit PostgreSQL Foreign Data Wrappern (Astrid Emde, german) https://pretalx.com/fossgis2020/talk/ZP3JZZ/
 * pgRouting: A Practical Guide (Mai 2017, 2. Auflage) Regine Obe, Leo Hsu ISBN: 9780989421737
 * Find the right projection http://spatialreference.org/
 
@@ -127,9 +127,12 @@ SELECT version(), postgis_version(), postgis_full_version();
 * http://postgis.net/docs/
 
 
-PostGIS turned 20 in on 21. May 2021!
+PostGIS turned 20 on 21. May 2021!
 
 ![](img/elephant_confetti.png)
+
+* Geomob Podcast - 88. Paul Ramsey: PostGIS turns 20 https://thegeomob.com/podcast/episode-88
+* PostGIS at 20, The Beginning Paul Ramsey: http://blog.cleverelephant.ca/2021/05/postgis-20-years.html
 
 
 Do not miss PostGIS day!
