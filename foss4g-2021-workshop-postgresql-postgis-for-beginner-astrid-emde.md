@@ -85,7 +85,7 @@ SELECT version(), postgis_version(), postgis_full_version();
 * Modern SQL Blog Markus Winand https://modern-sql.com/slides https://use-the-index-luke.com/
 * PostgreSQL books https://www.postgresql.org/docs/books/
 * FOSSGIS 2021 20 Jahre PostGIS - dazu 20 hilfreiche Tipps zu PostGIS und Neuigkeiten rund um das Projekt (Astrid Emde, german) https://pretalx.com/fossgis2021/talk/NL3FAN/
-* FOSSGIS 202 Verbindungen schaffen mit PostgreSQL Foreign Data Wrappern (Astrid Emde, german) https://pretalx.com/fossgis2020/talk/ZP3JZZ/
+* FOSSGIS 2020 Verbindungen schaffen mit PostgreSQL Foreign Data Wrappern (Astrid Emde, german) https://pretalx.com/fossgis2020/talk/ZP3JZZ/
 * pgRouting: A Practical Guide (Mai 2017, 2. Auflage) Regine Obe, Leo Hsu ISBN: 9780989421737
 * Find the right projection http://spatialreference.org/
 
